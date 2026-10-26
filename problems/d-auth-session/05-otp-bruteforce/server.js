@@ -1,8 +1,8 @@
-// D단계 7번 문제 — 2단계 인증(보안 코드) 무차별 대입
+// D단계 5번 문제 — 2단계 인증(보안 코드) 무차별 대입 + 잠금 우회
 // 최고관리자 headroaster 계정으로 로그인한 뒤, "창고 긴급 개방"을 하려면 4자리 보안 코드를
-// 추가로 입력해야 한다. 코드는 로그인할 때 한 번 정해지고 바뀌지 않으며(0000-9999, 10000가지),
-// 서버는 틀린 시도 횟수를 전혀 세지 않는다. 그래서 0000부터 9999까지 자동으로 전부 시도하면
-// 언젠가는 반드시 맞는 코드에 걸린다.
+// 추가로 입력해야 한다. 코드는 로그인할 때 한 번 정해지고 바뀌지 않는다(0000-9999, 10000가지).
+// 같은 단말기(X-Terminal-Id 헤더)로 5번 틀리면 그 단말기를 잠그지만, 이 헤더 값을
+// 클라이언트가 보낸 그대로 믿기 때문에 요청마다 값을 바꾸면 잠금이 걸리지 않는다.
 // 의존성 없이 Node 내장 http 모듈만 사용. 실행: node server.js (독립) / combined-server.js (통합)
 'use strict';
 const http = require('http');
@@ -18,11 +18,24 @@ const USER = 'headroaster';
 const PASS = 'roast2026';
 const FLAG = 'BREW{ch4_05_otp_bruteforce}';
 
-// 로그인 시 한 번 발급되는 4자리 코드. 취약 지점: 시도 횟수를 세지 않아서 몇 번이든 다시 시도할 수 있다.
+// 로그인 시 한 번 발급되는 4자리 코드.
 let pendingCode = null;
+
+// 긴급 상황을 대비해 창고 입구마다 별도 보안 단말기가 있고, 요청에 X-Terminal-Id
+// 헤더로 "어느 단말기에서 왔는지"를 싣는다. 같은 단말기 ID로 5번 틀리면 그 단말기만
+// 잠근다 — 라는 게 의도이지만, 서버는 이 헤더 값을 클라이언트가 보낸 그대로 믿는다.
+// 취약 지점: 요청마다 X-Terminal-Id 값을 바꿔 보내면 매번 "새 단말기"로 취급되어
+// 잠금이 걸리지 않는다. 그래서 0000-9999를 전부 시도하는 걸 실질적으로 막지 못한다.
+const ATTEMPT_LIMIT = 5;
+let attemptsByTerminal = new Map();
 
 function issueCode() {
   pendingCode = String(Math.floor(Math.random() * 10000)).padStart(4, '0');
+  attemptsByTerminal = new Map();
+}
+
+function terminalId(req) {
+  return req.headers['x-terminal-id'] || '기본';
 }
 
 function parseCookies(req) {
@@ -96,6 +109,13 @@ function openedPage() {
   );
 }
 
+function lockedPage(tid) {
+  return page(
+    '<h1>단말기 잠김</h1>' +
+    '<div class="panel locked"><strong>안내</strong><p>단말기(<code>X-Terminal-Id: ' + tid + '</code>)에서 시도 횟수를 초과했습니다. 다른 입구 단말기에서 시도하십시오.</p></div>'
+  );
+}
+
 function handle(req, res, base) {
   base = base || '';
   const cookiePath = base || '/';
@@ -143,17 +163,25 @@ function handle(req, res, base) {
     });
   }
 
-  // 취약 지점: 틀린 시도 횟수를 세거나 잠그지 않아서, 0000-9999를 전부 시도하는 걸 막지 못한다.
+  // 취약 지점: 단말기 식별을 클라이언트가 보낸 X-Terminal-Id 헤더로만 한다.
+  // 그 값을 바꿔 보내면 매번 새 단말기로 취급되어, 시도 횟수 제한이 실질적으로 무력화된다.
   if (req.method === 'POST' && p === '/verify-code') {
     return parseBody(req, function (body) {
       if (cookies.d05_auth !== USER) {
         res.writeHead(302, { Location: base + '/login' });
         return res.end();
       }
+      const tid = terminalId(req);
+      const tries = attemptsByTerminal.get(tid) || 0;
+      if (tries >= ATTEMPT_LIMIT) {
+        res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+        return res.end(lockedPage(tid));
+      }
       if (body.code === pendingCode) {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(openedPage());
       }
+      attemptsByTerminal.set(tid, tries + 1);
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
       return res.end(codePage(base, '코드가 올바르지 않습니다.'));
     });

