@@ -93,6 +93,7 @@ function loginPage(base, msg) {
 
 function codePage(base, msg) {
   return page(
+    '<!-- dev note: 단말기 구분은 X-Terminal-Id 헤더 값으로만 판단함. 같은 값으로 5번 틀리면 그 단말기를 잠그지만, 헤더 값은 검증하지 않음 — 요청마다 바꿔 보내면 잠기지 않음. -->' +
     '<h1>보안 코드 확인</h1>' +
     '<p class="lead">창고를 긴급 개방하려면 4자리 보안 코드를 입력하십시오. 코드는 로그인 시 발급되었습니다.</p>' +
     (msg ? '<p class="error">' + msg + '</p>' : '') +
