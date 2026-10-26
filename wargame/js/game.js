@@ -530,6 +530,63 @@
     go('title');
   });
 
+  /* =========================================================
+     검증용 디버그 패널 — 장/문제를 즉시 선택해 바로 전투로 이동.
+     대회 당일에는 DEBUG_PANEL 을 false 로 바꾸고 배포한다.
+     ========================================================= */
+  var DEBUG_PANEL = true;
+  function initDebugPanel() {
+    if (!DEBUG_PANEL) return;
+    var rows = CHS.map(function (c) {
+      var btns = DATA.problems[c.id - 1].map(function (p) {
+        return '<button type="button" data-dbg-ch="' + c.id + '" data-dbg-no="' + p.no + '">' + p.no + '</button>';
+      }).join('');
+      return '<div class="dbg-row"><span class="dbg-label">' + c.id + '장</span><div class="dbg-btns">' + btns + '</div></div>';
+    }).join('');
+    var panel = document.createElement('div');
+    panel.id = 'debug-panel';
+    panel.innerHTML =
+      '<button type="button" id="debug-toggle">검증용 바로가기 ▾</button>' +
+      '<div id="debug-body" hidden>' + rows +
+      '<div class="dbg-actions">' +
+      '<button type="button" id="debug-main">메인</button>' +
+      '<button type="button" id="debug-log">기록</button>' +
+      '<button type="button" id="debug-reset">초기화</button>' +
+      '</div></div>';
+    document.body.appendChild(panel);
+
+    $('#debug-toggle').addEventListener('click', function () {
+      var body = $('#debug-body');
+      body.hidden = !body.hidden;
+      $('#debug-toggle').textContent = '검증용 바로가기 ' + (body.hidden ? '▾' : '▴');
+    });
+    panel.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-dbg-ch]');
+      if (b) {
+        state.ch = +b.getAttribute('data-dbg-ch');
+        state.dmg = +b.getAttribute('data-dbg-no') - 1;
+        state.ended = false;
+        save();
+        mapCh = state.ch;
+        go('battle');
+        return;
+      }
+      if (e.target.closest('#debug-main')) { go('title'); return; }
+      if (e.target.closest('#debug-reset')) {
+        if (!confirm('진행 기록을 지우고 1장 1번부터 다시 시작할까요?')) return;
+        state = fresh();
+        mapCh = 1;
+        save();
+        go('title');
+        return;
+      }
+      if (e.target.closest('#debug-log')) {
+        alert('현재 진행: ' + state.ch + '장 ' + (state.dmg + 1) + '번 (HP ' + (MAX - state.dmg) + '/' + MAX + ')' + (state.ended ? ' · 엔딩 도달' : ''));
+      }
+    });
+  }
+
   /* ---------- 시작 ---------- */
+  initDebugPanel();
   go('title');
 })();

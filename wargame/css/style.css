@@ -822,6 +822,49 @@ button { cursor: pointer; }
 .modal-box.wide { width: 1040px; }
 .quest-newtab-link { align-self: flex-start; margin-top: -8px; font-size: 13px; color: #8A6A44; text-decoration: underline; }
 .quest-newtab-link[hidden] { display: none; }
+
+/* 검증용 디버그 패널 */
+#debug-panel {
+  position: fixed;
+  left: 10px;
+  bottom: 10px;
+  z-index: 999;
+  font-family: var(--mono, monospace);
+  font-size: 12px;
+}
+#debug-toggle {
+  display: block;
+  padding: 6px 10px;
+  border: 1px solid #555;
+  border-radius: 6px;
+  background: rgba(20, 15, 10, .88);
+  color: #E8C77A;
+  cursor: pointer;
+}
+#debug-body {
+  margin-top: 4px;
+  padding: 10px;
+  width: 260px;
+  max-height: 60vh;
+  overflow-y: auto;
+  border: 1px solid #555;
+  border-radius: 8px;
+  background: rgba(20, 15, 10, .92);
+  color: #ddd;
+}
+.dbg-row { margin-bottom: 8px; }
+.dbg-label { display: block; margin-bottom: 3px; color: #E8C77A; }
+.dbg-btns { display: flex; flex-wrap: wrap; gap: 4px; }
+.dbg-btns button, .dbg-actions button {
+  padding: 3px 7px;
+  border: 1px solid #555;
+  border-radius: 4px;
+  background: #2A2018;
+  color: #ddd;
+  cursor: pointer;
+}
+.dbg-btns button:hover, .dbg-actions button:hover { background: #3A2E20; }
+.dbg-actions { display: flex; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid #444; }
 .modal-box iframe { width: 100%; height: 470px; border: 3px solid var(--ink); border-radius: 8px; background: #fff; }
 
 @media (prefers-reduced-motion: reduce) {
