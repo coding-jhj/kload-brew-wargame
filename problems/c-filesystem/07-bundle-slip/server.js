@@ -11,6 +11,7 @@ const lib = require('../_lib.js');
 
 const PORT = 3007;
 const FLAG = 'ROAST{ch3_07_bundle_slip}';
+const PROBLEM_ROOT = path.resolve(__dirname); // entries may be written only inside this folder
 const RECIPES_DIR = path.join(__dirname, 'recipes'); // 묶음을 푸는 기본 위치
 const LIVE_DIR = path.join(__dirname, 'live');        // 웹에서 직접 실행 가능한 위치 (원래는 못 써야 함)
 fs.mkdirSync(RECIPES_DIR, { recursive: true });
@@ -59,7 +60,11 @@ function handle(req, res, basePath) {
       entries.forEach(function (e) {
         if (e.type === 'FILE') {
           try {
-            const dest = path.join(RECIPES_DIR, e.name); // ../ 를 그대로 믿는다
+            const dest = path.resolve(RECIPES_DIR, e.name); // ../ 를 그대로 믿는다
+            // Boundary: the intended ../ escape (recipes/ -> live/) stays inside this problem folder.
+            // An entry resolving outside __dirname (other chapters, wargame/, repo root) is skipped;
+            // the response format ("묶음을 풀었습니다. (N개 항목)") is unchanged.
+            if (dest.indexOf(PROBLEM_ROOT + path.sep) !== 0) return;
             fs.mkdirSync(path.dirname(dest), { recursive: true });
             fs.writeFileSync(dest, e.content);
           } catch (err) {

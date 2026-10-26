@@ -10,6 +10,7 @@ const lib = require('../_lib.js');
 
 const PORT = 3002;
 const FLAG = 'ROAST{ch3_02_path_traversal}';
+const PROBLEM_ROOT = path.resolve(__dirname); // traversal is allowed only inside this folder
 const NOTES_DIR = path.join(__dirname, 'notes');
 const SECRET_DIR = path.join(__dirname, 'secret'); // notes 폴더 바깥, 원래는 접근하면 안 되는 곳
 
@@ -60,7 +61,19 @@ function handle(req, res, basePath) {
         inner: '<h1>파일 없음</h1><div class="panel locked"><strong>안내</strong><p>파일을 찾을 수 없습니다.</p></div>'
       }));
     }
-    const target = path.join(NOTES_DIR, file);
+    const target = path.resolve(NOTES_DIR, file);
+    // Boundary: the intended ../ escape (notes/ -> secret/) stays inside this problem folder.
+    // Anything resolving outside __dirname (other chapters, wargame/, repo root) is treated as "not found".
+    // Comparing against base + path.sep blocks prefix tricks such as "02-path-traversal-evil".
+    if (target.indexOf(PROBLEM_ROOT + path.sep) !== 0) {
+      res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(lib.page({
+        title: '파일 없음',
+        step: '3장 로스팅 · 02',
+        monster: 'ch3-f02.webp',
+        inner: '<h1>파일 없음</h1><div class="panel locked"><strong>안내</strong><p>파일을 찾을 수 없습니다.</p></div>'
+      }));
+    }
     fs.readFile(target, 'utf8', function (err, data) {
       if (err) {
         res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8' });
