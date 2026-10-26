@@ -83,7 +83,7 @@
           <button type="button" class="hud-link" id="btn-to-map">지도</button>
           <button type="button" class="hud-link" id="btn-to-title">메인</button>
         </header>
-        <p class="dialog-hint" aria-hidden="true">테스트 플래그: <code>test</code></p>
+        <p class="dialog-hint" id="dialog-hint" aria-hidden="true" hidden>테스트 플래그: <code>test</code></p>
 
         <!-- 몬스터 체력 패널 -->
         <div class="hp-plate" id="hp-plate">
@@ -143,6 +143,7 @@
         <div class="modal-box" id="quest-box">
           <p class="eyebrow" id="quest-eyebrow">1장 · 문제 1 / 10</p>
           <h3 id="quest-title">문제 준비 중</h3>
+          <a href="#" id="quest-newtab" class="quest-newtab-link" target="_blank" rel="noopener noreferrer" hidden>새 탭에서 열기</a>
           <p id="quest-desc"></p>
           <iframe id="quest-frame" title="문제 페이지" hidden referrerpolicy="no-referrer" sandbox="allow-scripts allow-forms allow-same-origin allow-popups"></iframe>
           <button type="button" class="game-btn game-btn-gold" data-close>닫기</button>

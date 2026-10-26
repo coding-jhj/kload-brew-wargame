@@ -359,6 +359,7 @@
     var box = $('#dialog-text');
     box.className = 'dialog-text';
     box.innerHTML = '<span class="tag">[문제]</span> ' + esc(text);
+    $('#dialog-hint').hidden = !!p.flagHash;
   }
   // 대사 상자: 전투 안내 문구 (잠시 후 문제 문구로 돌아감)
   function say(text, kind, ms) {
@@ -387,13 +388,17 @@
     var p = DATA.problems[ch - 1][no - 1];
     $('#quest-eyebrow').textContent = c.id + '장 ' + c.name + ' · 문제 ' + p.no + ' / ' + MAX + (solved ? ' · 해결 완료' : '');
     $('#quest-title').textContent = p.title || '문제 준비 중';
+    var hint = solved ? '이미 뚫은 세이브 포인트입니다.' : '';
     $('#quest-desc').innerHTML = (p.desc ? esc(p.desc) : '아직 문제 내용이 정해지지 않았습니다.') +
-      (solved ? '<br>이미 뚫은 세이브 포인트입니다.' : '<br>테스트 플래그 <code>test</code>를 입력하면 몬스터를 공격할 수 있습니다.');
+      (hint ? '<br>' + hint : '');
     // http(s) 주소만 허용한다
     var frame = $('#quest-frame');
     var ok = typeof p.url === 'string' && /^https?:\/\//i.test(p.url);
     frame.hidden = !ok;
     frame.src = ok ? p.url : 'about:blank';
+    var newtab = $('#quest-newtab');
+    newtab.hidden = !ok;
+    if (ok) newtab.href = p.url;
     $('#quest-box').classList.toggle('wide', ok);
     $('#modal-quest').hidden = false;
   }

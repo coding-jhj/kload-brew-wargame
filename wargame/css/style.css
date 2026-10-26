@@ -820,6 +820,8 @@ button { cursor: pointer; }
 .modal-box code { padding: 2px 8px; border-radius: 6px; background: var(--ink); color: var(--gold); font-family: var(--mono); }
 .modal-box .game-btn { align-self: flex-end; }
 .modal-box.wide { width: 1040px; }
+.quest-newtab-link { align-self: flex-start; margin-top: -8px; font-size: 13px; color: #8A6A44; text-decoration: underline; }
+.quest-newtab-link[hidden] { display: none; }
 .modal-box iframe { width: 100%; height: 470px; border: 3px solid var(--ink); border-radius: 8px; background: #fff; }
 
 @media (prefers-reduced-motion: reduce) {
