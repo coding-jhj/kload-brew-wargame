@@ -75,12 +75,13 @@
 <p><strong>플래그:</strong> <code>BREW{ch4_01_b3an_r0ast_bypass}</code></p>
 <p><strong>취약점:</strong> 쿠키에 담긴 상태값을 서버가 검증 없이 그대로 믿습니다 (클라이언트 측 값 신뢰).</p>
 <h2>4장 · 02 (하) — 배치 추적 시스템</h2>
-<p><strong>풀이 흐름:</strong> 로그인합니다 → 내 담당 배치(#7)는 평범한 기록임을 확인합니다 → URL의 배치 번호를 1로 바꿔봅니다 → 핵심 배치(몬스터 본체) 기록에서 플래그를 확인합니다.</p>
+<p><strong>풀이 흐름:</strong> 로그인합니다 → 내 담당 배치(#7)는 평범한 기록임을 확인합니다 → <code>id</code> 번호를 다른 값으로 바꿔도 내용이 보이는지 확인합니다 → 작은 번호부터 몇 개 시도해 핵심 배치(몬스터 본체) 기록을 찾습니다.</p>
+<p><strong>화면 힌트:</strong> 대시보드 안내문에 "몬스터는 수많은 배치 중 하나인 척 숨어 있습니다. <strong>번호만 알면 누구의 기록이든 들여다볼 수 있습니다</strong>"라고 적혀 있습니다. 이걸 보고 <code>id</code> 값을 바꿔서 남의 배치도 열리는지 시도하게 됩니다. 이런 숫자 ID를 바꿔보는 문제(IDOR)에서는 <strong>1번(가장 먼저 만들어진 레코드)이 핵심·관리자용인 경우가 많아 가장 먼저 시도하는 게 정석</strong>입니다. 1번에서 안 나와도 2, 3, 4... 순서대로 몇 개만 더 시도하면 됩니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
 <li><code>https://kload-wargame.onrender.com/ch4/02/</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
 <li>대시보드에서 "내 담당 배치"가 <code>/ch4/02/batch?id=7</code>로 연결되어 있는 것을 확인합니다.</li>
-<li>주소창에서 <code>id=7</code>을 <code>id=1</code>로 바꿔 접속합니다.</li>
+<li>주소창에서 <code>id=7</code>을 <code>id=1</code>로 바꿔 접속합니다(안 되면 2, 3, 4...처럼 작은 수부터 차례로 시도합니다).</li>
 <li>배치 #1 "핵심 배치(몬스터 본체)" 기록에서 플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>BREW{ch4_02_idor_batch_snoop}</code></p>
