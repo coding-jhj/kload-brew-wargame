@@ -72,8 +72,9 @@ function loginPage(base, msg) {
 
 function dashboardPage(base) {
   return page(
+    '<!-- dev note: 2차 승인은 내부적으로 GET ' + base + '/approve 경로로 처리됨. 세션만 확인하고 1차 검토 제출 여부는 확인 안 함. -->' +
     '<h1>폐기 절차 안내</h1>' +
-    '<p class="lead">배치 #' + CORE_BATCH + '(몬스터 본체)를 폐기하려면 1차 검토 후 2차 승인을 거쳐야 합니다. 2차 승인은 내부적으로 <code>GET ' + base + '/approve</code> 경로로 처리됩니다.</p>' +
+    '<p class="lead">배치 #' + CORE_BATCH + '(몬스터 본체)를 폐기하려면 1차 검토 후 2차 승인을 거쳐야 합니다. 2차 승인은 담당자 전용 내부 경로로 별도 처리됩니다.</p>' +
     '<div class="panel raw"><strong>1단계 · 1차 검토</strong><p>배치 상태를 확인하고 검토 의견을 제출합니다. <a class="flag-chip" href="' + base + '/review">1차 검토로 이동</a></p></div>'
   );
 }
