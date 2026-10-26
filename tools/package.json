@@ -1,0 +1,16 @@
+{
+  "name": "tools",
+  "version": "1.0.0",
+  "description": "이 폴더는 Claude가 작업하면서 쓴 보조 스크립트입니다. 워게임 문제 자체와는 상관없고, 나중에 다시 검증하거나 풀이집 PDF를 다시 만들 때만 필요합니다.",
+  "main": "md2pdf.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "playwright": "^1.64.1"
+  }
+}

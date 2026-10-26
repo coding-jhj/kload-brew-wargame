@@ -1,0 +1,180 @@
+/* D단계(원두→커피, 인증·세션 관리) 10문제가 공유하는 스타일.
+   게임 본체(wargame/css/style.css)의 색상·폰트·나무판 질감을 그대로 가져왔다. */
+:root {
+  --ink: #2A0F06;
+  --cream: #FFF4DA;
+  --gold: #FFC24A;
+  --orange: #FF8A2B;
+  --red: #E0301E;
+  --game: 'Jua', 'Noto Sans KR', sans-serif;
+  --logo: 'Black Han Sans', 'Jua', sans-serif;
+  --sans: 'Noto Sans KR', system-ui, sans-serif;
+  --mono: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  --outline: -2px -2px 0 var(--ink), 2px -2px 0 var(--ink), -2px 2px 0 var(--ink), 2px 2px 0 var(--ink),
+             0 -2px 0 var(--ink), 0 2px 0 var(--ink), -2px 0 0 var(--ink), 2px 0 0 var(--ink);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 20px;
+  color: #F3E7D3;
+  font-family: var(--sans);
+  position: relative;
+  overflow-x: hidden;
+  background: #120B06;
+}
+/* 게임의 실제 배경 그림(title-bg, 지도/메인 화면과 같은 숲)을 그대로 쓴다. 단색으로 흐린 가짜 배경 금지 */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background: url('/assets/title-bg.webp') center / cover no-repeat;
+  z-index: 0;
+}
+body::after {
+  content: '';
+  position: fixed; inset: 0;
+  /* 카드 글씨가 읽히도록 어둡게 깔되, 숲은 비쳐 보이게 한다 */
+  background: radial-gradient(ellipse 65% 60% at 50% 42%, rgba(10, 6, 2, .55), rgba(6, 4, 1, .82) 78%);
+  z-index: 0;
+}
+.wrap { position: relative; z-index: 1; width: 100%; max-width: 560px; }
+
+/* 상단 HUD: 실제 전투 화면의 로고 + 장 이동 표시줄을 그대로 흉내 */
+.hud {
+  display: flex; align-items: center; gap: 10px;
+  margin: 0 0 14px;
+}
+.hud .logo {
+  font-family: var(--logo); font-size: 22px; letter-spacing: .04em; color: var(--gold);
+  -webkit-text-stroke: 2px var(--ink); paint-order: stroke fill;
+}
+.hud .step {
+  padding: 5px 14px; border-radius: 14px;
+  background: rgba(90, 56, 30, .85); border: 2px solid var(--gold);
+  font-family: var(--game); font-size: 14px; color: #fff;
+}
+
+/* 카드: 실제 전투 화면의 '몬스터 카드'를 그대로 가져온 구성 — 그림이 카드의 절반 이상을 차지한다 */
+.card {
+  border-radius: 16px;
+  border: 4px solid var(--ink);
+  overflow: hidden;
+  background: linear-gradient(#4A3524, #2E1F14);
+  box-shadow:
+    inset 0 0 0 3px #6B4A2E,
+    inset 0 2px 0 rgba(255, 200, 140, .12),
+    0 18px 50px rgba(0, 0, 0, .6);
+}
+/* 그림은 세로로 긴 비율이라, 가로로 넓은 틀에 cover 로 자르면 머리나 발이 잘린다.
+   게임 본편과 같은 기법: 흐린 같은 그림을 배경으로 깔고, 그 위에 전신이 다 보이게 contain 으로 띄운다. */
+.monster {
+  position: relative;
+  width: 100%; height: 280px;
+  border-bottom: 4px solid var(--ink);
+  background: #1A120B;
+  overflow: hidden;
+}
+.monster::before {
+  content: '';
+  position: absolute; inset: -20px;
+  background: url('/assets/ch4-monster.webp') center 30% / cover no-repeat;
+  filter: blur(14px) brightness(.45) saturate(1.1);
+}
+.monster img {
+  position: relative; z-index: 1;
+  width: 100%; height: 100%;
+  object-fit: contain; object-position: 50% 58%;
+  image-rendering: pixelated;
+}
+.card .inner { padding: 28px 36px 34px; text-align: left; }
+
+h1 {
+  margin: 0 0 10px;
+  font-family: var(--logo);
+  font-weight: 400;
+  font-size: 30px;
+  color: var(--gold);
+  -webkit-text-stroke: 3px var(--ink);
+  paint-order: stroke fill;
+}
+.lead { margin: 0 0 22px; font-family: var(--game); font-size: 16px; line-height: 1.6; color: #F3E7D3; }
+
+/* 안쪽 정보 상자: 의미에 따라 색을 달리한다 (한 톤 반복 금지) */
+.panel {
+  border: 3px solid var(--ink);
+  border-radius: 10px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  border-left-width: 6px;
+  background: linear-gradient(rgba(0, 0, 0, .3), rgba(0, 0, 0, .22)), linear-gradient(#3B3A30, #2A2A22);
+  box-shadow: 0 4px 0 rgba(10, 8, 4, .45);
+}
+.panel strong { display: block; margin-bottom: 8px; font-family: var(--game); font-size: 18px; color: #FFE9B8; }
+.panel p { margin: 0; font-size: 15px; line-height: 1.7; color: #D8D2B8; }
+/* 생두 상태: 아직 익지 않은 연두 기운 */
+.panel.raw { border-left-color: #6E9A4E; }
+.panel.raw strong { color: #CDE8B0; }
+/* 잠김: 채도를 낮춰 무채색에 가깝게 */
+.panel.locked { opacity: .65; border-left-color: #5A5A52; }
+/* 열림: 로스팅 불빛, 금색·주황 강조 */
+.panel.open {
+  border-left-color: var(--gold);
+  background: linear-gradient(rgba(90, 50, 10, .35), rgba(40, 20, 5, .3)), linear-gradient(#3B3A30, #2A2A22);
+  box-shadow: 0 0 22px rgba(255, 150, 40, .3), 0 4px 0 rgba(10, 8, 4, .45);
+}
+
+code, .flag-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  background: var(--ink);
+  color: var(--gold);
+  font-family: var(--mono);
+  font-size: 15px;
+}
+
+/* 입력창과 버튼: 전투 화면 flag-row 를 재사용 */
+form { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+input[type=text], input[type=password] {
+  flex: 1;
+  min-width: 200px;
+  height: 48px;
+  padding: 0 16px;
+  border-radius: 10px;
+  border: 3px solid rgba(255, 255, 255, .22);
+  background: rgba(20, 20, 18, .9);
+  box-shadow: inset 0 2px 6px rgba(0, 0, 0, .6);
+  font-family: var(--mono);
+  font-size: 16px;
+  color: #fff;
+}
+input::placeholder { color: rgba(255, 255, 255, .38); font-family: var(--game); }
+input:focus { outline: none; border-color: var(--gold); }
+
+.btn {
+  height: 48px;
+  padding: 0 22px;
+  border-radius: 12px;
+  border: 3px solid var(--ink);
+  background: linear-gradient(#FFE08A, #FFB52E 60%, #E8901A);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 4px 0 var(--ink);
+  font-family: var(--game);
+  font-size: 18px;
+  color: #3A1F0E;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .55);
+  cursor: pointer;
+}
+.btn:hover { filter: brightness(1.08); }
+.btn:active { transform: translateY(3px); box-shadow: inset 0 3px 0 rgba(255, 255, 255, .45), 0 1px 0 var(--ink); }
+
+.error { color: #FF9A86; font-family: var(--game); margin: -8px 0 18px; }
+.creds { margin: 0 0 20px; font-size: 15px; color: #D8D2B8; }
+
+a { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; }
+a:hover { color: var(--orange); }
+
+.eyebrow { margin: 0 0 4px; font-family: var(--logo); font-size: 13px; letter-spacing: .12em; color: var(--gold); }

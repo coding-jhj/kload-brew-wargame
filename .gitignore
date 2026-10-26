@@ -1,0 +1,37 @@
+# 의존성 설치 산출물
+node_modules/
+
+# tools/md2pdf.js가 변환 중에 만드는 중간 HTML (최종 PDF만 커밋 대상)
+tools/*.html
+
+# tools/verify-browser.js를 실행하면 생기는 화면 캡처
+tools/screenshots/
+
+# 세션 중 사용한 보조 도구(graph-indexer, anchor-memory)가 만든 산출물
+.anchor/
+.graph-indexer/
+
+# 각 챌린지 서버가 기동할 때마다 mkdir로 새로 만드는 런타임 디렉터리
+# (02-path-traversal의 notes/, secret/ 는 챌린지 자체에 필요한 고정 자산이므로 제외하지 않음)
+uploads/
+live/
+recipes/
+objects/
+
+# OS 임시 파일
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# 개인정보가 담긴 인수인계 문서 — 저장소에 올리지 않음
+/handoff-bossmonster-coffee-wargame.md
+/이어서-작업하기.md
+
+# 이전 보안 테스트(패스 트래버설 / zip-slip 익스플로잇 확인) 중 의도치 않게 새어나간 산출물로 보임.
+# 챌린지 원본 콘텐츠가 아니라서 제외함. 디스크에서 지우지는 않았으니 필요하면 git add -f로 되돌릴 수 있음.
+/scout_c7_root_4.txt
+/problems/scout_c7_root_3.txt
+/problems/c-filesystem/scout_c7_root_2.txt
+/problems/c-filesystem/07-bundle-slip/scout_c7_root_1.txt
+/problems/c-filesystem/07-bundle-slip/scout_c7probe_3.txt
+/problems/c-filesystem/07-bundle-slip/scout_trav.txt
