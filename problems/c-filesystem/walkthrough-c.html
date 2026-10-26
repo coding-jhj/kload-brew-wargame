@@ -74,6 +74,8 @@
 <pre><code>cd "problems\c-filesystem"
 node combined-server.js</code></pre>
 <p>실행 중이라는 메시지가 뜨면(<code>C단계 통합 서버 실행: http://localhost:3000/  (문제별 경로: /ch3/01 ~ /ch3/10)</code>), 그 창은 그대로 켜 둔 채로 브라우저에서 각 문제 주소(<code>http://localhost:3000/ch3/번호/</code>)에 접속하면 됩니다. 서버를 끄려면 그 창에서 <code>Ctrl+C</code>를 누릅니다.</p>
+<p><strong>배포된 사이트로 바로 확인하기</strong></p>
+<p>로컬 서버를 직접 띄우지 않고, 이미 배포된 사이트(<code>https://kload-wargame.onrender.com</code>)에서 바로 따라 해도 됩니다. 아래 모든 안내에서 <code>http://localhost:3000</code>을 <code>https://kload-wargame.onrender.com</code>으로 바꿔서 접속하면 똑같이 동작합니다. ("서버가 실행되면..." 같은 로컬 서버 실행 안내 문장은 이 경우 무시하면 됩니다.)</p>
 <p><strong>3. 전체 문제·경로 목록</strong></p>
 <table><thead><tr><th>문제</th><th>폴더</th><th>경로</th></tr></thead><tbody><tr><td>C1</td><td><code>01-open-backup</code></td><td><code>/ch3/01/</code></td></tr><tr><td>C2</td><td><code>02-path-traversal</code></td><td><code>/ch3/02/</code></td></tr><tr><td>C3</td><td><code>03-git-exposure</code></td><td><code>/ch3/03/</code></td></tr><tr><td>C4</td><td><code>04-env-leak</code></td><td><code>/ch3/04/</code></td></tr><tr><td>C5</td><td><code>05-double-ext-bypass</code></td><td><code>/ch3/05/</code></td></tr><tr><td>C6</td><td><code>06-lfi-log-poison</code></td><td><code>/ch3/06/</code></td></tr><tr><td>C7</td><td><code>07-bundle-slip</code></td><td><code>/ch3/07/</code></td></tr><tr><td>C8</td><td><code>08-phar-deserialize</code></td><td><code>/ch3/08/</code></td></tr><tr><td>C9</td><td><code>09-race-condition</code></td><td><code>/ch3/09/</code></td></tr><tr><td>C10</td><td><code>10-image-cmd-injection</code></td><td><code>/ch3/10/</code></td></tr></tbody></table>
 <h2>3장 · 01 (하) — 열려 있는 납품 서류 창고</h2>
@@ -255,7 +257,7 @@ node combined-server.js</code></pre>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_09_race_condition}</code></p>
 <p><strong>취약점:</strong> 업로드 기능이 파일을 먼저 "실행 가능한 위치"에 저장한 다음에야 내용을 검사하고, 위험하면 그제서야 지웁니다. "저장 완료 시점"과 "위험 판정 후 삭제 시점" 사이에 파일이 실행 가능한 상태로 짧게 존재하는 레이스 컨디션(TOCTOU, Time-Of-Check to Time-Of-Use)이 있습니다.</p>
-<h2>3장 · 10 (상, 3장이자 전체 워게임 마지막 문제) — 이미지 처리 프로그램 커맨드 인젝션</h2>
+<h2>3장 · 10 (상, 3장 마지막 문제) — 이미지 처리 프로그램 커맨드 인젝션</h2>
 <p><strong>풀이 흐름:</strong> 업로드된 사진이 외부 이미지 처리 프로그램으로 자동 변환된다는 것을 확인합니다 → 파일 이름 안에 셸 명령처럼 보이는 패턴을 심어 업로드합니다 → 잠시 뒤 처리 상태를 확인해 명령이 실행됐는지 봅니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
