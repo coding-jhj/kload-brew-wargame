@@ -63,32 +63,12 @@
   td code, th code { font-size: 9pt; }
 </style></head>
 <body><h1>D단계 (원두→커피, 인증·세션 관리) 풀이집</h1>
-<h2>실행 방법 (문제를 풀기 전에 먼저 하십시오)</h2>
-<p>이 문제들은 실제로 동작하는 서버이기 때문에, 풀기 전에 먼저 서버를 실행시켜야 합니다. 서버를 한 번만 실행하면 4장 10문제가 전부 그 서버 안에서 함께 동작하므로, 문제를 옮길 때마다 서버를 새로 켤 필요는 없습니다.</p>
-<p><strong>1. Node.js 설치 확인</strong></p>
-<p>PowerShell을 열고 아래 명령을 실행합니다.</p>
-<pre><code>node --version</code></pre>
-<p>버전 번호가 나오면 설치되어 있는 겁니다. "인식할 수 없다"는 오류가 나오면 nodejs.org에서 LTS 버전을 설치한 뒤 PowerShell을 새로 열어서 다시 시도합니다.</p>
-<p><strong>2. 통합 서버 실행</strong></p>
-<p>VSCode에서 <code>wargame problems</code> 폴더(이 <code>problems</code> 폴더의 바로 위 폴더)를 작업 폴더로 열고 터미널을 켜면, 아래 명령들이 그대로 통합니다(상대 경로라서 <code>wargame problems</code> 폴더를 어디로 옮기든 그대로 작동합니다). PowerShell 창을 하나만 열어서, 아래처럼 <code>d-auth-session</code> 폴더로 이동한 뒤 통합 서버를 실행합니다.</p>
-<pre><code>cd "problems\d-auth-session"
-node combined-server.js</code></pre>
-<p>실행 중이라는 메시지가 뜨면(<code>D단계 통합 서버 실행: http://localhost:4000/</code>), 그 창은 그대로 켜 둔 채로 브라우저에서 각 문제 주소(<code>http://localhost:4000/ch4/번호/</code>)에 접속하면 됩니다. 서버를 끄려면 그 창에서 <code>Ctrl+C</code>를 누릅니다.</p>
-<p><strong>배포된 사이트로 바로 확인하기</strong></p>
-<p>로컬 서버를 직접 띄우지 않고, 이미 배포된 사이트(<code>https://kload-wargame.onrender.com</code>)에서 바로 따라 해도 됩니다. 아래 모든 안내에서 <code>http://localhost:4000</code>을 <code>https://kload-wargame.onrender.com</code>으로 바꿔서 접속하면 똑같이 동작합니다. ("서버가 실행되면..." 같은 로컬 서버 실행 안내 문장은 이 경우 무시하면 됩니다.)</p>
-<p><strong>3. 전체 문제·경로 목록</strong></p>
-<table><thead><tr><th>문제</th><th>폴더</th><th>경로</th></tr></thead><tbody><tr><td>D1</td><td><code>01-bean-core</code></td><td><code>/ch4/01/</code></td></tr><tr><td>D2</td><td><code>02-batch-idor</code></td><td><code>/ch4/02/</code></td></tr><tr><td>D3</td><td><code>03-approval-skip</code></td><td><code>/ch4/03/</code></td></tr><tr><td>D4</td><td><code>04-nest-csrf</code></td><td><code>/ch4/04/</code></td></tr><tr><td>D5</td><td><code>05-otp-bruteforce</code></td><td><code>/ch4/05/</code></td></tr><tr><td>D6</td><td><code>06-logout-ghost</code></td><td><code>/ch4/06/login</code></td></tr><tr><td>D7</td><td><code>07-hidden-debug</code></td><td><code>/ch4/07/</code></td></tr><tr><td>D8</td><td><code>08-jwt-alg-confusion</code></td><td><code>/ch4/08/</code></td></tr><tr><td>D9</td><td><code>09-oauth-state</code></td><td><code>/ch4/09/</code></td></tr><tr><td>D10</td><td><code>10-2fa-bypass</code></td><td><code>/ch4/10/login</code></td></tr></tbody></table>
 <h2>4장 · 01 (하) — 원두 몬스터 추출 시스템</h2>
 <p><strong>풀이 흐름:</strong> 로그인합니다 → "핵심" 패널이 잠겨 있는 것을 확인합니다 → 브라우저 쿠키 <code>d01_bean_state</code>를 <code>raw</code>에서 <code>roasted</code>로 수정합니다 → 재접속해 플래그를 확인합니다.</p>
+<p><strong>화면 힌트:</strong> 로그인 후 대시보드에 "상태값은 raw 아니면 roasted 둘 중 하나입니다"라고 적혀 있고, 잠긴 "핵심" 패널에는 "로스팅이 완료된 원두만 열람할 수 있습니다"라고 떠 있습니다. 여기서 상태를 나타내는 값이 쿠키에 담겨 있고, 바꿔야 할 목표 값이 <code>roasted</code>라는 것을 추론할 수 있습니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/01/</code> 입니다.</p>
-<ol>
-<li>주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/01/</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
 <li>개발자 도구(F12 또는 Ctrl+Shift+I) → Application → Cookies에서 <code>d01_bean_state</code> 값을 <code>roasted</code>로 바꿉니다.</li>
 <li>새로고침하면 "핵심(로스팅 완료)" 패널이 열리며 플래그가 나옵니다.</li>
 </ol>
@@ -98,13 +78,7 @@ node combined-server.js</code></pre>
 <p><strong>풀이 흐름:</strong> 로그인합니다 → 내 담당 배치(#7)는 평범한 기록임을 확인합니다 → URL의 배치 번호를 1로 바꿔봅니다 → 핵심 배치(몬스터 본체) 기록에서 플래그를 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/02/</code> 입니다.</p>
-<ol>
-<li>주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/02/</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
 <li>대시보드에서 "내 담당 배치"가 <code>/ch4/02/batch?id=7</code>로 연결되어 있는 것을 확인합니다.</li>
 <li>주소창에서 <code>id=7</code>을 <code>id=1</code>로 바꿔 접속합니다.</li>
 <li>배치 #1 "핵심 배치(몬스터 본체)" 기록에서 플래그가 나옵니다.</li>
@@ -113,15 +87,10 @@ node combined-server.js</code></pre>
 <p><strong>취약점:</strong> 서버가 로그인 여부만 확인하고, 요청한 배치 번호가 로그인한 사람의 것인지는 확인하지 않습니다 (IDOR — Insecure Direct Object Reference).</p>
 <h2>4장 · 03 (하) — 핵심 배치 폐기 승인 시스템</h2>
 <p><strong>풀이 흐름:</strong> 로그인합니다 → 폐기 절차가 1차 검토·2차 승인 2단계로 나뉘어 있는 것을 확인합니다 → 1차 검토를 제출하지 않은 채 2차 승인 주소로 직접 이동합니다 → 플래그를 확인합니다.</p>
+<p><strong>화면 힌트:</strong> "폐기 절차 안내" 화면에 "2차 승인은 내부적으로 <code>GET /ch4/03/approve</code> 경로로 처리됩니다"라고 적혀 있습니다. 여기서 1차 검토를 건너뛰고 직접 열어 볼 2차 승인 주소가 <code>/ch4/03/approve</code>라는 것을 알 수 있습니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/03/</code> 입니다.</p>
-<ol>
-<li>주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/03/</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
 <li>"폐기 절차 안내" 화면에서 1차 검토·2차 승인 2단계 절차를 확인합니다.</li>
 <li>1차 검토 페이지의 "검토 제출" 버튼을 누르지 않고, 주소창에 <code>/ch4/03/approve</code>를 직접 입력해 이동합니다.</li>
 <li>"2차 승인 — 배치 #1 폐기 완료" 화면에서 플래그가 나옵니다.</li>
@@ -132,13 +101,7 @@ node combined-server.js</code></pre>
 <p><strong>풀이 흐름:</strong> 로그인합니다 → "둥지 봉인은 <code>GET /ch4/04/seal-nest</code>로만 처리된다"는 안내문을 확인합니다 → 열리자마자 그 주소로 자동 이동하는 HTML 페이지를 만들어 로그인된 상태에서 엽니다 → 플래그를 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/04/</code> 입니다.</p>
-<ol>
-<li>주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/04/</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
 <li>"둥지 봉인 대기 중" 화면에서 <code>GET /ch4/04/seal-nest</code>라는 내부 API 경로를 확인합니다.</li>
 <li>아래 내용으로 HTML 파일을 만들어 저장합니다.</li>
 </ol>
@@ -146,7 +109,7 @@ node combined-server.js</code></pre>
    &lt;html&gt;
    &lt;head&gt;
    &lt;title&gt;free coffee coupon&lt;/title&gt;
-   &lt;meta http-equiv="refresh" content="0; url=http://localhost:4000/ch4/04/seal-nest"&gt;
+   &lt;meta http-equiv="refresh" content="0; url=https://kload-wargame.onrender.com/ch4/04/seal-nest"&gt;
    &lt;/head&gt;
    &lt;body&gt;&lt;p&gt;loading...&lt;/p&gt;&lt;/body&gt;
    &lt;/html&gt;</code></pre>
@@ -155,26 +118,20 @@ node combined-server.js</code></pre>
 <li>열리자마자 <code>/ch4/04/seal-nest</code>로 자동 이동되며 "둥지 봉인 완료" 화면과 함께 플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>BREW{ch4_04_csrf_seal_nest}</code></p>
-<p><strong>취약점:</strong> 서버가 둥지 봉인 요청을 처리할 때 로그인 세션만 확인하고, CSRF 토큰은 확인하지 않습니다. 다만 "정말 외부에서 온 요청인지"는 브라우저가 자동으로 보내는 표준 헤더 <code>Sec-Fetch-Site</code>로 판정합니다 — 주소창에 직접 입력하거나(<code>none</code>) 사이트 안에서 이동하면(<code>same-origin</code>) 거부되고, 외부 HTML 파일에서 자동으로 이동한 경우(<code>cross-site</code>)만 통과합니다. 그래서 반드시 위 4-5번처럼 별도 HTML 파일을 만들어 열어야 하며, 이 주소를 브라우저 주소창에 직접 입력하는 것만으로는 통하지 않습니다. 상태를 바꾸는 작업을 GET 요청으로 처리하는 것 자체도 결함입니다 (CSRF — Cross-Site Request Forgery).</p>
+<p><strong>취약점:</strong> 서버가 둥지 봉인 요청을 처리할 때 로그인 세션만 확인하고, CSRF 토큰은 확인하지 않습니다. 다만 "정말 외부에서 온 요청인지"는 브라우저가 자동으로 보내는 표준 헤더 <code>Sec-Fetch-Site</code>로 판정합니다 — 주소창에 직접 입력하거나(<code>none</code>) 사이트 안에서 이동하면(<code>same-origin</code>) 거부되고, 외부 HTML 파일에서 자동으로 이동한 경우(<code>cross-site</code>)만 통과합니다. 그래서 반드시 위 3-4번처럼 별도 HTML 파일을 만들어 열어야 하며, 이 주소를 브라우저 주소창에 직접 입력하는 것만으로는 통하지 않습니다. 상태를 바꾸는 작업을 GET 요청으로 처리하는 것 자체도 결함입니다 (CSRF — Cross-Site Request Forgery).</p>
 <h2>4장 · 05 (중) — 창고 긴급 개방 시스템</h2>
 <p><strong>풀이 흐름:</strong> 공개된 계정(<code>headroaster</code> / <code>roast2026</code>)으로 로그인합니다 → "창고 긴급 개방"에 4자리 보안 코드가 추가로 필요한 것을 확인합니다 → 몇 번을 틀려도 막히지 않는 것을 확인하고, 0000-9999를 자동으로 전부 시도하는 스크립트를 돌립니다 → 맞는 코드로 플래그를 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/05/</code> 입니다.</p>
-<ol>
-<li><code>headroaster</code> / <code>roast2026</code>으로 로그인합니다. "보안 코드 확인" 화면으로 이동합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/05/</code>에서 <code>headroaster</code> / <code>roast2026</code>으로 로그인합니다. "보안 코드 확인" 화면으로 이동합니다.</li>
 <li>아무 코드나 입력해 "확인"을 눌러 보고, 틀려도 잠기거나 막히지 않는 것을 확인합니다.</li>
 <li>PowerShell에서 아래 스크립트를 실행해 0000부터 9999까지 코드를 자동으로 전부 시도합니다.</li>
 </ol>
 <pre><code>   $session = $null
-   Invoke-WebRequest -Uri "http://localhost:4000/ch4/05/login" -Method POST -Body @{id="headroaster"; pw="roast2026"} -SessionVariable session -UseBasicParsing | Out-Null
+   Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/login" -Method POST -Body @{id="headroaster"; pw="roast2026"} -SessionVariable session -UseBasicParsing | Out-Null
    for ($i = 0; $i -le 9999; $i++) {
        $code = $i.ToString("0000")
-       $resp = Invoke-WebRequest -Uri "http://localhost:4000/ch4/05/verify-code" -Method POST -Body @{code=$code} -WebSession $session -UseBasicParsing
+       $resp = Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch4/05/verify-code" -Method POST -Body @{code=$code} -WebSession $session -UseBasicParsing
        if ($resp.Content -match "BREW\{[^}]*\}") {
            Write-Host "맞는 코드: $code"
            Write-Host $matches[0]
@@ -190,51 +147,34 @@ node combined-server.js</code></pre>
 <p><strong>풀이 흐름:</strong> 로그인해서 세션 쿠키 값을 미리 복사해둡니다 → 로그아웃합니다 → 복사해둔 쿠키 값을 다시 넣어봅니다 → 여전히 로그인된 상태로 접속되는 것을 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/06/login</code> 입니다.</p>
-<ol>
-<li>주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/06/login</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
 <li>개발자 도구(F12 또는 Ctrl+Shift+I) → Application → Cookies에서 <code>d06_sid</code> 값을 복사해둡니다.</li>
 <li>화면의 "로그아웃" 링크를 클릭합니다.</li>
-<li>쿠키 <code>d06_sid</code>를 3번에서 복사해둔 값으로 다시 설정하고 <code>/ch4/06/mypage</code>에 접속합니다.</li>
+<li>쿠키 <code>d06_sid</code>를 2번에서 복사해둔 값으로 다시 설정하고 <code>/ch4/06/mypage</code>에 접속합니다.</li>
 <li>로그아웃했는데도 여전히 "내 작업 기록" 화면이 보이며 플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>BREW{ch4_06_logout_ghost_session}</code></p>
 <p><strong>취약점:</strong> 로그아웃 처리가 브라우저 쪽 쿠키만 지우고, 서버가 그 세션을 실제로 무효화하지 않습니다. 로그아웃 전에 세션 값을 알고 있던 사람은 로그아웃 후에도 계속 그 세션을 재사용할 수 있습니다.</p>
 <h2>4장 · 07 (중) — 유지보수 포털</h2>
-<p><strong>풀이 흐름:</strong> <code>robots.txt</code>를 열어 "들어오지 말라"고 적힌 숨은 경로를 확인합니다 → 그 경로에 들어가 테스트용 관리자 계정을 발견합니다 → 그 계정으로 로그인해 플래그를 확인합니다.</p>
+<p><strong>풀이 흐름:</strong> <code>robots.txt</code>를 열어 "들어오지 말라"고 적힌 숨은 경로를 확인합니다 → 그 경로에 들어가 테스트용 관리자 계정을 발견합니다 → 그 계정으로 로그인해 발급된 실제 세션으로 플래그를 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/07/</code> 입니다.</p>
-<ol>
-<li>주소창에 <code>http://localhost:4000/ch4/07/robots.txt</code>를 입력해 엽니다. <code>Disallow: /ch4/07/debug-staff-only</code>라는 줄이 보입니다.</li>
-<li>이 줄이 가리키는 <code>http://localhost:4000/ch4/07/debug-staff-only</code>로 직접 접속합니다.</li>
+<li>주소창에 <code>https://kload-wargame.onrender.com/ch4/07/robots.txt</code>를 입력해 엽니다. <code>Disallow: /ch4/07/debug-staff-only</code>라는 줄이 보입니다.</li>
+<li>이 줄이 가리키는 <code>https://kload-wargame.onrender.com/ch4/07/debug-staff-only</code>로 직접 접속합니다.</li>
 <li>페이지에 남아있는 테스트 계정(아이디/비밀번호)을 확인합니다.</li>
 <li>그 계정으로 <code>/ch4/07/login</code>에서 로그인하면 플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>BREW{ch4_07_hidden_admin_creds}</code></p>
-<p><strong>취약점:</strong> 검색엔진에게 "들어오지 말라"고 알려주는 <code>robots.txt</code>가, 역설적으로 "여기 뭔가 숨겨져 있다"는 지도 역할을 합니다. 그 경로에 테스트용 관리자 계정을 지우지 않고 그대로 남겨뒀습니다 (하드코딩된 계정 노출).</p>
+<p><strong>취약점:</strong> 검색엔진에게 "들어오지 말라"고 알려주는 <code>robots.txt</code>가, 역설적으로 "여기 뭔가 숨겨져 있다"는 지도 역할을 합니다. 그 경로에 테스트용 관리자 계정을 지우지 않고 그대로 남겨뒀습니다 (하드코딩된 계정 노출). 로그인에 성공하면 서버가 무작위 세션 토큰을 발급해 저장하고, 이후 모든 요청은 그 토큰으로만 인증됩니다 — 계정 이름을 안다고 쿠키를 직접 조작해서 통과할 수는 없고, 실제로 로그인해서 세션을 발급받아야 합니다.</p>
 <h2>4장 · 08 (상) — 서명 토큰 발급 시스템</h2>
 <p><strong>풀이 흐름:</strong> 로그인해서 받은 토큰이 진짜 서명(RS256)으로 되어있는 것을 확인합니다 → 서버가 공개하고 있는 공개키를 가져옵니다 → 토큰의 서명 방식을 HS256으로 바꾸고, 그 공개키 문자열을 "비밀키"처럼 사용해 가짜 서명을 만듭니다 → 서버가 속아서 admin 권한으로 인식하는 것을 확인합니다.</p>
+<p><strong>화면 힌트:</strong> 문제 화면에서 "페이지 소스 보기"를 하면, 검증 코드가 토큰 헤더에 적힌 <code>alg</code> 값을 그대로 믿고 검증 방식을 고른다는(RS256/HS256 혼동) dev note 힌트가 숨겨져 있습니다. 로그인 화면에는 공개키를 누구나 볼 수 있다는 안내까지 함께 떠 있으므로, 여기서 서명 알고리즘을 HS256으로 바꿔치기하고 공개키를 "비밀키" 자리에 넣는 공격을 떠올릴 수 있습니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/08/</code> 입니다.</p>
-<ol>
-<li>주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다. <code>d08_auth</code> 쿠키에 토큰이 발급됩니다.</li>
-<li><code>http://localhost:4000/ch4/08/public_key.pem</code>에 접속해 "공개키" 상자 안의 <code>-----BEGIN PUBLIC KEY-----</code>로 시작해 <code>-----END PUBLIC KEY-----</code>로 끝나는 텍스트만 마우스로 드래그해서 복사합니다(화면 전체를 복사하면 제목 글자까지 섞여 들어가니 주의하십시오). <strong>주의:</strong> 서버는 이 PEM 문자열 끝의 줄바꿈(개행문자) 하나까지 포함한 값을 서명 키로 씁니다. 마우스 드래그로는 끝 개행이 복사 안 될 수 있으니, 5번에서 서명이 안 맞으면 복사한 문자열 맨 끝에 개행문자(<code>\n</code>) 하나를 수동으로 추가해서 다시 시도해 보십시오.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/08/</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다. <code>d08_auth</code> 쿠키에 토큰이 발급됩니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/08/public_key.pem</code>에 접속해 "공개키" 상자 안의 <code>-----BEGIN PUBLIC KEY-----</code>로 시작해 <code>-----END PUBLIC KEY-----</code>로 끝나는 텍스트만 마우스로 드래그해서 복사합니다(화면 전체를 복사하면 제목 글자까지 섞여 들어가니 주의하십시오). <strong>주의:</strong> 서버는 이 PEM 문자열 끝의 줄바꿈(개행문자) 하나까지 포함한 값을 서명 키로 씁니다. 마우스 드래그로는 끝 개행이 복사 안 될 수 있으니, 4번에서 서명이 안 맞으면 복사한 문자열 맨 끝에 개행문자(<code>\n</code>) 하나를 수동으로 추가해서 다시 시도해 보십시오.</li>
 <li>토큰의 가운데 부분(payload)을 디코드해 <code>role</code>을 <code>admin</code>으로 바꾸고, 헤더 부분(header)의 <code>alg</code>를 <code>"RS256"</code>에서 <code>"HS256"</code>으로 바꿉니다.</li>
-<li>바뀐 헤더.바뀐 payload 문자열을, 3번에서 복사한 공개키 전체 문자열을 "비밀키"로 사용해 HMAC-SHA256으로 서명합니다.</li>
+<li>바뀐 헤더.바뀐 payload 문자열을, 2번에서 복사한 공개키 전체 문자열을 "비밀키"로 사용해 HMAC-SHA256으로 서명합니다.</li>
 <li>새로 만든 서명을 이어붙여 <code>d08_auth</code> 쿠키를 교체하고 새로고침합니다.</li>
 <li>"전체 통제 — admin 권한" 화면에서 플래그가 나옵니다.</li>
 </ol>
@@ -244,14 +184,8 @@ node combined-server.js</code></pre>
 <p><strong>풀이 흐름:</strong> 내 계정으로 제휴 연동을 시작해 콜백 주소를 받습니다 → 이 주소를 "문의(링크 신고)" 기능으로 관리자에게 전달합니다 → 관리자가 그 링크를 열람하면서 관리자 계정에 내 외부 계정이 연동됩니다 → 그 외부 계정 코드로 다시 로그인해 관리자 권한을 얻습니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/09/</code> 입니다.</p>
-<ol>
-<li>주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
-<li>"제휴 계정 연동" 링크를 눌러 콜백 주소로 이동합니다. <strong>주소창(URL 표시줄)</strong>에 있는 전체 주소(<code>http://localhost:4000/ch4/09/oauth/callback?code=...&amp;state=...</code>)를 복사해둡니다. 화면 본문에 표시되는 주소는 상대 경로(<code>/ch4/09/oauth/callback?...</code>)라서, 그걸 그대로 복사해 신고하면 "올바른 콜백 주소가 아닙니다"로 거부됩니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/09/</code>에서 주어진 계정(<code>roaster</code> / <code>coffee123</code>)으로 로그인합니다.</li>
+<li>"제휴 계정 연동" 링크를 눌러 콜백 주소로 이동합니다. <strong>주소창(URL 표시줄)</strong>에 있는 전체 주소(<code>https://kload-wargame.onrender.com/ch4/09/oauth/callback?code=...&amp;state=...</code>)를 복사해둡니다. 화면 본문에 표시되는 주소는 상대 경로(<code>/ch4/09/oauth/callback?...</code>)라서, 그걸 그대로 복사해 신고하면 "올바른 콜백 주소가 아닙니다"로 거부됩니다.</li>
 <li>"링크 신고" 메뉴로 이동해, 2번에서 복사한 전체 주소(절대 URL)를 붙여넣고 신고를 제출합니다.</li>
 <li>몇 초 기다립니다(관리자가 신고된 링크를 확인하는 시간입니다).</li>
 <li>"외부 계정 코드로 로그인" 메뉴로 이동해, 2번 주소의 <code>code</code> 값을 입력하고 로그인합니다.</li>
@@ -263,14 +197,8 @@ node combined-server.js</code></pre>
 <p><strong>풀이 흐름:</strong> 계정 1단계(비밀번호) 로그인만 합니다 → 2단계(보안 코드)는 서버가 발급한 실제 코드를 정상 경로로는 알 수 없어 정석으로 통과할 수 없음을 확인합니다 → 그래서 2단계를 건너뛰고, 입력하지 않은 채 최종 제어실 주소로 바로 이동합니다 → 2단계를 건너뛰었는데도 들어가지는 것을 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\d-auth-session"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:4000/ch4/10/login</code> 입니다.</p>
-<ol>
-<li><code>headroaster</code> / <code>roast2026</code>으로 1단계 로그인을 합니다. "2단계(보안 코드)" 화면으로 넘어갑니다.</li>
-<li>보안 코드를 입력하지 않고, 주소창에 직접 <code>http://localhost:4000/ch4/10/final-control</code>을 입력해 이동합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch4/10/login</code>에서 <code>headroaster</code> / <code>roast2026</code>으로 1단계 로그인을 합니다. "2단계(보안 코드)" 화면으로 넘어갑니다.</li>
+<li>보안 코드를 입력하지 않고, 주소창에 직접 <code>https://kload-wargame.onrender.com/ch4/10/final-control</code>을 입력해 이동합니다.</li>
 <li>"최종 제어실 — 공장 전체 장악 완료" 화면에서 전체 게임의 최종 플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>BREW{ch4_10_2fa_logic_bypass}</code></p>

