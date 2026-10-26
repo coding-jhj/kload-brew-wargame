@@ -181,8 +181,12 @@ function handle(req, res, base) {
         res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
         return res.end(openedPage());
       }
-      attemptsByTerminal.set(tid, tries + 1);
+      const nextTries = tries + 1;
+      attemptsByTerminal.set(tid, nextTries);
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      if (nextTries >= ATTEMPT_LIMIT) {
+        return res.end(lockedPage(tid));
+      }
       return res.end(codePage(base, '코드가 올바르지 않습니다.'));
     });
   }
