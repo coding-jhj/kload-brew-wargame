@@ -76,7 +76,9 @@ function indexPage() {
     '</div></div></div></body></html>';
 }
 
-const server = http.createServer(function (req, res) {
+// 요청 처리 함수. 루트 server.js(프론트엔드 + 3장 + 4장 단일 서버)가 이 함수를
+// require 해서 /ch4/* 요청을 위임한다. 독립 실행은 파일 맨 아래 require.main 블록에서 한다.
+function handle(req, res) {
   let pathname;
   try {
     pathname = new URL(req.url, 'http://localhost').pathname;
@@ -127,9 +129,14 @@ const server = http.createServer(function (req, res) {
 
   res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
   res.end('404');
-});
+}
 
-server.listen(PORT, function () {
-  console.log('D단계 통합 서버 실행: http://localhost:' + PORT + '/');
-  console.log('문제 경로: http://localhost:' + PORT + '/ch4/01/ ~ /ch4/10/');
-});
+module.exports = handle;
+
+// 독립 실행(node combined-server.js)일 때만 포트를 연다. 로컬 테스트·디버깅용.
+if (require.main === module) {
+  http.createServer(handle).listen(PORT, function () {
+    console.log('D단계 통합 서버 실행: http://localhost:' + PORT + '/');
+    console.log('문제 경로: http://localhost:' + PORT + '/ch4/01/ ~ /ch4/10/');
+  });
+}

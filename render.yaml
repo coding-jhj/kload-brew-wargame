@@ -1,23 +1,7 @@
 services:
   - type: web
-    name: kload-wargame-frontend
+    name: kload-wargame
     runtime: node
     buildCommand: "echo no-build"
-    startCommand: "npx serve -s wargame -l $PORT"
-    plan: free
-
-  - type: web
-    name: kload-ch3-filesystem
-    runtime: node
-    rootDir: problems/c-filesystem
-    buildCommand: "echo no-build"
-    startCommand: "node combined-server.js"
-    plan: free
-
-  - type: web
-    name: kload-ch4-auth-session
-    runtime: node
-    rootDir: problems/d-auth-session
-    buildCommand: "echo no-build"
-    startCommand: "node combined-server.js"
+    startCommand: "node server.js"
     plan: free
