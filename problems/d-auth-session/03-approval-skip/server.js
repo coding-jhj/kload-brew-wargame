@@ -72,7 +72,6 @@ function loginPage(base, msg) {
 
 function dashboardPage(base) {
   return page(
-    '<!-- dev note: 2차 승인은 내부적으로 GET ' + base + '/approve 경로로 처리됨. 세션만 확인하고 1차 검토 제출 여부는 확인 안 함. -->' +
     '<h1>폐기 절차 안내</h1>' +
     '<p class="lead">배치 #' + CORE_BATCH + '(몬스터 본체)를 폐기하려면 1차 검토 후 2차 승인을 거쳐야 합니다. 2차 승인은 담당자 전용 내부 경로로 별도 처리됩니다.</p>' +
     '<div class="panel raw"><strong>1단계 · 1차 검토</strong><p>배치 상태를 확인하고 검토 의견을 제출합니다. <a class="flag-chip" href="' + base + '/review">1차 검토로 이동</a></p></div>'
@@ -89,10 +88,11 @@ function reviewPage(base) {
   );
 }
 
-function reviewSubmittedPage() {
+function reviewSubmittedPage(base) {
   return page(
     '<h1>1차 검토 제출 완료</h1>' +
-    '<div class="panel locked"><strong>2차 승인 대기 중</strong><p>검토 의견이 2차 승인 담당자에게 전달되었습니다. 승인은 담당자만 진행할 수 있습니다.</p></div>'
+    '<div class="panel locked"><strong>2차 승인 대기 중</strong><p>검토 의견이 2차 승인 담당자에게 전달되었습니다.</p>' +
+    '<a class="btn locked" href="' + base + '/approve">2차 승인 진행 <span class="tag">담당자 전용</span></a></div>'
   );
 }
 
@@ -174,7 +174,7 @@ function handle(req, res, base) {
     }
     return parseBody(req, function () {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
-      res.end(reviewSubmittedPage());
+      res.end(reviewSubmittedPage(base));
     });
   }
 
