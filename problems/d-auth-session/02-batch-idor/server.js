@@ -67,7 +67,7 @@ function page(inner) {
 function loginPage(base, msg) {
   return page(
     '<h1>배치 추적 시스템</h1>' +
-    '<p class="lead">몬스터는 수많은 배치 중 하나인 척 숨어 있습니다. 번호만 알면 누구의 기록이든 들여다볼 수 있습니다.</p>' +
+    '<p class="lead">몬스터는 수많은 배치 중 하나인 척 공장 안에 숨어들었습니다.</p>' +
     '<p class="creds">관리자가 두고 간 계정으로 로그인하십시오.<br>아이디 <span class="flag-chip">roaster</span> · 비밀번호 <span class="flag-chip">coffee123</span></p>' +
     (msg ? '<p class="error">' + msg + '</p>' : '') +
     '<form method="POST" action="' + base + '/login">' +
@@ -80,8 +80,14 @@ function loginPage(base, msg) {
 function dashboardPage(base) {
   return page(
     '<h1>배치 추적 시스템 — 대시보드</h1>' +
-    '<p class="lead">몬스터는 수많은 배치 중 하나인 척 숨어 있습니다. 번호만 알면 누구의 기록이든 들여다볼 수 있습니다.</p>' +
-    '<div class="panel raw"><strong>내 담당 배치</strong><p>배치 #' + MY_BATCH + '. <a class="flag-chip" href="' + base + '/batch?id=' + MY_BATCH + '">상세보기</a></p></div>'
+    '<p class="lead">몬스터는 수많은 배치 중 하나인 척 공장 안에 숨어들었습니다.</p>' +
+    '<div class="panel raw"><strong>내 담당 배치</strong><p>배치 #' + MY_BATCH + '. <a class="flag-chip" href="' + base + '/batch?id=' + MY_BATCH + '">상세보기</a></p></div>' +
+    '<div class="panel"><strong>최근 배치 열람 기록</strong><ul>' +
+    '<li>김로스팅 · 배치 #4 열람 · 정상 종료</li>' +
+    '<li>박주임 · 배치 #9 열람 · 정상 종료</li>' +
+    '<li>이선임 · 배치 #' + CORE_BATCH + ' 열람 요청 · 반려 (사유 미기재)</li>' +
+    '<li>최대리 · 배치 #12 열람 · 정상 종료</li>' +
+    '</ul></div>'
   );
 }
 
